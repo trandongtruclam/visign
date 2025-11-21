@@ -23,7 +23,7 @@ export const coursesRelations = relations(courses, ({ many }) => ({
 export const units = pgTable("units", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(), // Unit 1
-  description: text("description").notNull(), // Learn the basics of spanish
+  description: text("description").notNull(), // Learn the basics of vietnamese sign language
   courseId: integer("course_id")
     .references(() => courses.id, {
       onDelete: "cascade",
@@ -59,7 +59,13 @@ export const lessonsRelations = relations(lessons, ({ one, many }) => ({
   challenges: many(challenges),
 }));
 
-export const challengesEnum = pgEnum("type", ["SELECT", "ASSIST"]);
+export const challengesEnum = pgEnum("type", [
+  "SELECT",
+  "ASSIST",
+  "VIDEO_LEARN",
+  "VIDEO_SELECT",
+  "SIGN_DETECT",
+]);
 
 export const challenges = pgTable("challenges", {
   id: serial("id").primaryKey(),
@@ -71,6 +77,7 @@ export const challenges = pgTable("challenges", {
   type: challengesEnum("type").notNull(),
   question: text("question").notNull(),
   order: integer("order").notNull(),
+  videoUrl: text("video_url"),
 });
 
 export const challengesRelations = relations(challenges, ({ one, many }) => ({
@@ -92,6 +99,7 @@ export const challengeOptions = pgTable("challenge_options", {
   text: text("text").notNull(),
   correct: boolean("correct").notNull(),
   imageSrc: text("image_src"),
+  videoUrl: text("video_url"),
   audioSrc: text("audio_src"),
 });
 

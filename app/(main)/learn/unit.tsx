@@ -17,6 +17,7 @@ type UnitProps = {
       })
     | undefined;
   activeLessonPercentage: number;
+  unitLocked?: boolean;
 };
 
 export const Unit = ({
@@ -25,15 +26,17 @@ export const Unit = ({
   lessons,
   activeLesson,
   activeLessonPercentage,
+  unitLocked = false,
 }: UnitProps) => {
   return (
-    <>
+    <div>
       <UnitBanner title={title} description={description} />
 
       <div className="relative flex flex-col items-center">
         {lessons.map((lesson, i) => {
           const isCurrent = lesson.id === activeLesson?.id;
-          const isLocked = !lesson.completed && !isCurrent;
+          // If unit is locked, lock all lessons. Otherwise use normal lesson lock logic
+          const isLocked = unitLocked || (!lesson.completed && !isCurrent);
 
           return (
             <LessonButton
@@ -48,6 +51,6 @@ export const Unit = ({
           );
         })}
       </div>
-    </>
+    </div>
   );
 };

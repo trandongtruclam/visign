@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const siteConfig: Metadata = {
   title: "Visign ",
   description:
-    "Interactive platform for language learning with lessons, quizzes, and progress tracking.",
+    "Interactive platform for sign language learning with lessons, quizzes, and progress tracking.",
   keywords: [
     "reactjs",
     "nextjs",
@@ -40,12 +40,12 @@ export const siteConfig: Metadata = {
     "css",
   ] as Array<string>,
   authors: {
-    name: "Sanidhya Kumar Verma",
-    url: "https://github.com/sanidhyy",
+    name: "Sudocode 2025 LLMates Team",
+    url: "https://github.com/trandongtruclam/sudocode-llmates",
   },
 } as const;
 
 export const links = {
-  sourceCode: "https://github.com/trandongtruclam/visign",
+  sourceCode: "https://github.com/trandongtruclam/visign",  
   email: "trandongtruclam@gmail.com",
 } as const;

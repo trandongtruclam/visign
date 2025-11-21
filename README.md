@@ -1,6 +1,6 @@
 <a name="readme-top"></a>
 
-# Visign - Interactive platform for language learning.
+# Visign - Interactive platform for sign language learning.
 
 
 <br />

@@ -25,7 +25,14 @@ const main = async () => {
     // Insert courses
     const courses = await db
       .insert(schema.courses)
-      .values([{ title: "Spanish", imageSrc: "/es.svg" }])
+      .values([
+        { title: "Vietnamese", imageSrc: "/vn.svg" },
+        { title: "Japanese", imageSrc: "/jp.svg" },
+        { title: "Spanish", imageSrc: "/es.svg" },
+        { title: "French", imageSrc: "/fr.svg" },
+        { title: "Italian", imageSrc: "/it.svg" },
+        { title: "Croatian", imageSrc: "/hr.svg" },
+      ])
       .returning();
 
     // For each course, insert units
@@ -35,14 +42,14 @@ const main = async () => {
         .values([
           {
             courseId: course.id,
-            title: "Unit 1",
-            description: `Learn the basics of ${course.title}`,
+            title: "Noun",
+            description: `Learn the noun of ${course.title}`,
             order: 1,
           },
           {
             courseId: course.id,
-            title: "Unit 2",
-            description: `Learn intermediate ${course.title}`,
+            title: "Verb",
+            description: `Learn the verb of ${course.title}`,
             order: 2,
           },
         ])

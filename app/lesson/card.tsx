@@ -10,6 +10,7 @@ type CardProps = {
   id: number;
   text: string;
   imageSrc: string | null;
+  videoUrl?: string | null;
   audioSrc: string | null;
   shortcut: string;
   selected?: boolean;
@@ -22,6 +23,7 @@ type CardProps = {
 export const Card = ({
   text,
   imageSrc,
+  videoUrl,
   audioSrc,
   shortcut,
   selected,
@@ -46,7 +48,7 @@ export const Card = ({
     <div
       onClick={handleClick}
       className={cn(
-        "h-full cursor-pointer rounded-xl border-2 border-b-4 p-4 hover:bg-black/5 active:border-b-2 lg:p-6",
+        "h-full cursor-pointer rounded-xl border-2 border-b-4 p-3 transition-all hover:bg-black/5 active:border-b-2 lg:p-6",
         selected && "border-sky-300 bg-sky-100 hover:bg-sky-100",
         selected &&
           status === "correct" &&
@@ -55,20 +57,38 @@ export const Card = ({
           status === "wrong" &&
           "border-rose-300 bg-rose-100 hover:bg-rose-100",
         disabled && "pointer-events-none hover:bg-white",
-        type === "ASSIST" && "w-full lg:p-3"
+        type === "ASSIST" && "w-full lg:p-3",
+        // Enhanced styling for VIDEO_SELECT
+        type === "VIDEO_SELECT" &&
+          "border-3 min-w-[160px] max-w-[220px] flex-1 border-b-[6px] shadow-lg hover:scale-105 hover:shadow-xl",
+        type === "VIDEO_SELECT" &&
+          !selected &&
+          "border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50",
+        type === "VIDEO_SELECT" && selected && "scale-105 shadow-2xl"
       )}
     >
       {audio}
-      {imageSrc && (
+      {videoUrl ? (
+        <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-lg bg-gray-100">
+          <iframe
+            src={`${videoUrl}?title=0&byline=0&portrait=0&badge=0&autopause=0`}
+            className="h-full w-full"
+            frameBorder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            loading="lazy"
+          />
+        </div>
+      ) : imageSrc ? (
         <div className="relative mb-4 aspect-square max-h-[80px] w-full lg:max-h-[150px]">
           <Image src={imageSrc} fill alt={text} />
         </div>
-      )}
+      ) : null}
 
       <div
         className={cn(
           "flex items-center justify-between",
-          type === "ASSIST" && "flex-row-reverse"
+          type === "ASSIST" && "flex-row-reverse",
+          type === "VIDEO_SELECT" && "flex-col gap-3"
         )}
       >
         {type === "ASSIST" && <div aria-hidden />}
@@ -77,7 +97,10 @@ export const Card = ({
             "text-sm text-neutral-600 lg:text-base",
             selected && "text-sky-500",
             selected && status === "correct" && "text-green-500",
-            selected && status === "wrong" && "text-rose-500"
+            selected && status === "wrong" && "text-rose-500",
+            type === "VIDEO_SELECT" &&
+              "text-center text-base font-bold text-neutral-800 lg:text-lg",
+            type === "VIDEO_SELECT" && selected && "font-extrabold"
           )}
         >
           {text}
@@ -85,12 +108,17 @@ export const Card = ({
 
         <div
           className={cn(
-            "flex h-[20px] w-[20px] items-center justify-center rounded-lg border-2 text-xs font-semibold text-neutral-400 lg:h-[30px] lg:w-[30px] lg:text-[15px]",
+            "flex h-[15px] w-[15px] items-center justify-center rounded-lg border-2 text-xs font-semibold text-neutral-400 lg:h-[30px] lg:w-[30px] lg:text-[15px]",
             selected && "border-sky-300 text-sky-500",
             selected &&
               status === "correct" &&
               "border-green-500 text-green-500",
-            selected && status === "wrong" && "border-rose-500 text-rose-500"
+            selected && status === "wrong" && "border-rose-500 text-rose-500",
+            type === "VIDEO_SELECT" &&
+              "h-[32px] w-[32px] rounded-full text-base font-bold lg:h-[40px] lg:w-[40px] lg:text-xl",
+            type === "VIDEO_SELECT" &&
+              !selected &&
+              "border-gray-400 bg-gray-100"
           )}
         >
           {shortcut}

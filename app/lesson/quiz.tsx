@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,8 @@ import { Footer } from "./footer";
 import { Header } from "./header";
 import { QuestionBubble } from "./question-bubble";
 import { ResultCard } from "./result-card";
+import { SignDetection } from "./sign-detection";
+import { VideoLearn } from "./video-learn";
 
 type QuizProps = {
   initialPercentage: number;
@@ -67,12 +69,40 @@ export const Quiz = ({
 
   const [selectedOption, setSelectedOption] = useState<number>();
   const [status, setStatus] = useState<"none" | "wrong" | "correct">("none");
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const challenge = challenges[activeIndex];
   const options = challenge?.challengeOptions ?? [];
 
+  // Auto-redirect after lesson completion
+  useEffect(() => {
+    if (!challenge && !isCompleting) {
+      setIsCompleting(true);
+      // Wait a bit for confetti, then redirect
+      const timer = setTimeout(async () => {
+        // Force a hard navigation to refresh all server components
+        window.location.href = "/learn";
+      }, 3000); // 3 seconds to enjoy the confetti
+
+      return () => clearTimeout(timer);
+    }
+  }, [challenge, isCompleting]);
+
   const onNext = () => {
     setActiveIndex((current) => current + 1);
+  };
+
+  // DEBUG ONLY - Remove later
+  const onDebugBack = () => {
+    setActiveIndex((current) => Math.max(0, current - 1));
+    setStatus("none");
+    setSelectedOption(undefined);
+  };
+
+  const onDebugNext = () => {
+    setActiveIndex((current) => Math.min(challenges.length - 1, current + 1));
+    setStatus("none");
+    setSelectedOption(undefined);
   };
 
   const onSelect = (id: number) => {
@@ -117,6 +147,37 @@ export const Quiz = ({
     }
   };
 
+  // Handler for VIDEO_LEARN challenges
+  const onVideoLearnContinue = () => {
+    startTransition(() => {
+      upsertChallengeProgress(challenge.id)
+        .then(() => {
+          setPercentage((prev) => prev + 100 / challenges.length);
+          onNext();
+        })
+        .catch(() => toast.error("Something went wrong. Please try again."));
+    });
+  };
+
+  // Handler for SIGN_DETECT challenges
+  const onSignDetectionComplete = (isCorrect: boolean) => {
+    startTransition(() => {
+      upsertChallengeProgress(challenge.id)
+        .then(() => {
+          setPercentage((prev) => prev + 100 / challenges.length);
+          if (isCorrect) {
+            void correctControls.play();
+            // Move to next challenge immediately since SignDetection already shows result
+            setTimeout(() => onNext(), 1000);
+          } else {
+            void incorrectControls.play();
+            // Don't move to next, let user retry
+          }
+        })
+        .catch(() => toast.error("Something went wrong. Please try again."));
+    });
+  };
+
   if (!challenge) {
     return (
       <>
@@ -146,27 +207,86 @@ export const Quiz = ({
           />
 
           <h1 className="text-lg font-bold text-neutral-700 lg:text-3xl">
-            Great job! <br /> You&apos;ve completed the lesson.
+            Tuyệt vời! 🎉 <br /> Bạn đã hoàn thành bài học.
           </h1>
 
-          <div className="flex w-full items-center gap-x-4">
+          <div className="flex w-full flex-col items-center gap-y-4">
             <ResultCard variant="points" value={challenges.length * 10} />
+            <p className="animate-pulse text-sm text-muted-foreground">
+              Đang chuyển sang bài tiếp theo...
+            </p>
           </div>
         </div>
 
         <Footer
           lessonId={lessonId}
           status="completed"
-          onCheck={() => router.push("/learn")}
+          onCheck={() => {
+            // Force a hard navigation to ensure fresh data
+            window.location.href = "/learn";
+          }}
         />
       </>
     );
   }
 
+  // Handle VIDEO_LEARN type
+  if (challenge.type === "VIDEO_LEARN") {
+    return (
+      <>
+        {correctAudio}
+        <Header
+          percentage={percentage}
+          onBack={onDebugBack}
+          onNext={onDebugNext}
+          currentIndex={activeIndex}
+          totalChallenges={challenges.length}
+        />
+        <div className="flex flex-1 items-center justify-center p-6">
+          <VideoLearn
+            videoUrl={challenge.videoUrl || ""}
+            question={challenge.question}
+            onContinue={onVideoLearnContinue}
+          />
+        </div>
+      </>
+    );
+  }
+
+  // Handle SIGN_DETECT type
+  if (challenge.type === "SIGN_DETECT") {
+    return (
+      <>
+        {incorrectAudio}
+        {correctAudio}
+        <Header
+          percentage={percentage}
+          onBack={onDebugBack}
+          onNext={onDebugNext}
+          currentIndex={activeIndex}
+          totalChallenges={challenges.length}
+        />
+        <div className="flex flex-1 items-center justify-center p-6">
+          <SignDetection
+            videoUrl={challenge.videoUrl || ""}
+            targetSign={challenge.question
+              .replace('Thực hiện dấu hiệu: "', "")
+              .replace('"', "")}
+            challengeId={challenge.id}
+            onComplete={onSignDetectionComplete}
+          />
+        </div>
+      </>
+    );
+  }
+
+  // Handle VIDEO_SELECT type (show video, pick from text options)
   const title =
     challenge.type === "ASSIST"
       ? "Select the correct meaning"
-      : challenge.question;
+      : challenge.type === "VIDEO_SELECT"
+        ? "Dấu hiệu này có nghĩa là gì?"
+        : challenge.question;
 
   return (
     <>
@@ -174,6 +294,10 @@ export const Quiz = ({
       {correctAudio}
       <Header
         percentage={percentage}
+        onBack={onDebugBack}
+        onNext={onDebugNext}
+        currentIndex={activeIndex}
+        totalChallenges={challenges.length}
       />
 
       <div className="flex-1">
@@ -184,6 +308,21 @@ export const Quiz = ({
             </h1>
 
             <div>
+              {/* Show video for VIDEO_SELECT type */}
+              {challenge.type === "VIDEO_SELECT" && challenge.videoUrl && (
+                <div className="mb-6">
+                  <div className="aspect-video w-full overflow-hidden rounded-xl border-4 border-blue-500 bg-gray-100 shadow-lg">
+                    <iframe
+                      src={`${challenge.videoUrl}?autoplay=1&loop=1&title=0&byline=0&portrait=0&badge=0`}
+                      className="h-full w-full"
+                      frameBorder="0"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
+
               {challenge.type === "ASSIST" && (
                 <QuestionBubble question={challenge.question} />
               )}

@@ -11,14 +11,16 @@
     "format:fix": "prettier --write --ignore-path .gitignore .",
     "db:studio": "npx drizzle-kit studio",
     "db:push": "npx drizzle-kit push",
-    "db:prod": "tsx ./scripts/prod.ts"
+    "db:prod1": "tsx ./scripts/prod.ts",
+    "db:prod": "tsx ./scripts/seed-vietnamese-signs.ts",
+    "model:start": "node -e \"require('child_process').spawn('cmd', ['/c', 'scripts\\\\start-model-server.bat'], {stdio: 'inherit', shell: true})\""
   },
   "author": {
-    "name": "Sanidhya Kumar Verma",
-    "email": "sanidhya.verma12345@gmail.com",
-    "url": "https://github.com/sanidhyy"
+    "name": "Sudocode 2025 LLMates Team",
+    "email": "trandongtruclam@gmail.com",
+    "url": "https://github.com/trandongtruclam/sudocode-llmates"
   },
-  "description": "Interactive platform for language learning with lessons, quizzes, and progress tracking.",
+  "description": "Interactive platform for sign language learning with lessons, quizzes, and progress tracking.",
   "keywords": [
     "reactjs",
     "nextjs",
@@ -57,23 +59,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sanidhyy/duolingo-clone.git"
+    "url": "https://github.com/trandongtruclam/sudocode-llmates.git"
   },
-  "homepage": "https://github.com/sanidhyy/duolingo-clone#readme",
+  "homepage": "https://github.com/trandongtruclam/sudocode-llmates#readme",
   "bugs": {
-    "url": "https://github.com/sanidhyy/duolingo-clone/issues",
-    "email": "sanidhya.verma12345@gmail.com"
+    "url": "https://github.com/trandongtruclam/sudocode-llmates/issues",
+    "email": "trandongtruclam@gmail.com"
   },
-  "funding": [
-    {
-      "type": "patreon",
-      "url": "https://www.patreon.com/sanidhy"
-    },
-    {
-      "type": "Buy me a coffee",
-      "url": "https://www.buymeacoffee.com/sanidhy"
-    }
-  ],
   "dependencies": {
     "@clerk/nextjs": "^6.22.0",
     "@neondatabase/serverless": "^1.0.1",
@@ -84,6 +76,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "csv-parse": "^6.1.0",
     "dompurify": "^3.3.0",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.44.2",
@@ -92,7 +85,9 @@
     "lucide-react": "^0.359.0",
     "next": "^14.2.33",
     "next-themes": "^0.3.0",
+    "ra-data-json-server": "^5.13.1",
     "react": "^18",
+    "react-admin": "^5.13.1",
     "react-circular-progressbar": "^2.1.0",
     "react-confetti": "^6.1.0",
     "react-dom": "^18",

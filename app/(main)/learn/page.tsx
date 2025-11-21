@@ -50,19 +50,26 @@ const LearnPage = async () => {
       </StickyWrapper>
       <FeedWrapper>
         <Header title={userProgress.activeCourse.title} />
-        {units.map((unit) => (
-          <div key={unit.id} className="mb-10">
-            <Unit
-              id={unit.id}
-              order={unit.order}
-              description={unit.description}
-              title={unit.title}
-              lessons={unit.lessons}
-              activeLesson={courseProgress.activeLesson}
-              activeLessonPercentage={lessonPercentage}
-            />
-          </div>
-        ))}
+        {units.map((unit, unitIndex) => {
+          // Check if previous unit is completed
+          const isPreviousUnitCompleted = unitIndex === 0 || 
+            units[unitIndex - 1].lessons.every(lesson => lesson.completed);
+          
+          return (
+            <div key={unit.id} className="mb-10">
+              <Unit
+                id={unit.id}
+                order={unit.order}
+                description={unit.description}
+                title={unit.title}
+                lessons={unit.lessons}
+                activeLesson={courseProgress.activeLesson}
+                activeLessonPercentage={lessonPercentage}
+                unitLocked={!isPreviousUnitCompleted}
+              />
+            </div>
+          );
+        })}
       </FeedWrapper>
     </div>
   );

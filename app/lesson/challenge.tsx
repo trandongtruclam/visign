@@ -23,10 +23,11 @@ export const Challenge = ({
   return (
     <div
       className={cn(
-        "grid gap-2",
-        type === "ASSIST" && "grid-cols-1",
+        "gap-3",
+        type === "ASSIST" && "grid grid-cols-1",
         type === "SELECT" &&
-          "grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(0,1fr))]"
+          "grid grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(0,1fr))]",
+        type === "VIDEO_SELECT" && "flex flex-col sm:flex-row justify-center"
       )}
     >
       {options.map((option, i) => (
@@ -35,6 +36,7 @@ export const Challenge = ({
           id={option.id}
           text={option.text}
           imageSrc={option.imageSrc}
+          videoUrl={option.videoUrl}
           shortcut={`${i + 1}`}
           selected={selectedOption === option.id}
           onClick={() => onSelect(option.id)}
