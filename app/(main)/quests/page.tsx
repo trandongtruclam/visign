@@ -20,7 +20,7 @@ const QuestsPage = async () => {
         <UserProgress
           activeCourse={userProgress.activeCourse}
           points={userProgress.points}
-          hasActiveSubscription={false}
+          // hasActiveSubscription={false}
         />
         <Promo />
       </StickyWrapper>

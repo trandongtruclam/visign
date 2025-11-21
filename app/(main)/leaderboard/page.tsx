@@ -30,7 +30,7 @@ const LeaderboardPage = async () => {
         <UserProgress
           activeCourse={userProgress.activeCourse}
           points={userProgress.points}
-          hasActiveSubscription={false}
+          // hasActiveSubscription={false}
         />
         <Promo />
         <Quests points={userProgress.points} />

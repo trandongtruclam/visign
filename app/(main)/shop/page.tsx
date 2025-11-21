@@ -20,7 +20,7 @@ const ShopPage = async () => {
         <UserProgress
           activeCourse={userProgress.activeCourse}
           points={userProgress.points}
-          hasActiveSubscription={false}
+          // hasActiveSubscription={false}
         />
 
         <Quests points={userProgress.points} />
