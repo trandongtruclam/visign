@@ -1,4 +1,4 @@
-# Vietnamese Sign Language Learning Platform - Setup Guide
+l# Vietnamese Sign Language Learning Platform - Setup Guide
 
 ## 🚀 Quick Start
 

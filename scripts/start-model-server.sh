@@ -34,4 +34,4 @@ echo "========================================"
 echo ""
 
 # Start FastAPI server
-python app.py
+uvicorn app:app --reload

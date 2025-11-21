@@ -98,9 +98,9 @@ export const challengeOptions = pgTable("challenge_options", {
     .notNull(),
   text: text("text").notNull(),
   correct: boolean("correct").notNull(),
-  imageSrc: text("image_src"),
-  videoUrl: text("video_url"),
-  audioSrc: text("audio_src"),
+  // imageSrc: text("image_src"),
+  // videoUrl: text("video_url"),
+  // audioSrc: text("audio_src"),
 });
 
 export const challengeOptionsRelations = relations(

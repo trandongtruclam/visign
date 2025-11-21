@@ -32,6 +32,6 @@ echo ========================================
 echo.
 
 REM Start FastAPI server
-python app.py
+uvicorn app:app --reload
 
 pause
