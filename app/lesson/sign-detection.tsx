@@ -4,6 +4,13 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Camera, Video, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Holistic, Results } from "@mediapipe/holistic";
+import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
+import {
+  POSE_CONNECTIONS,
+  HAND_CONNECTIONS,
+  FACEMESH_TESSELATION,
+} from "@mediapipe/holistic";
 
 type SignDetectionProps = {
   videoUrl: string;
@@ -27,10 +34,113 @@ export const SignDetection = ({
   } | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const holisticRef = useRef<Holistic | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+
+  // Initialize MediaPipe Holistic (Pose + Hands + Face)
+  const initializeHolistic = useCallback(() => {
+    if (holisticRef.current) return;
+
+    const holistic = new Holistic({
+      locateFile: (file) => {
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`;
+      },
+    });
+
+    holistic.setOptions({
+      modelComplexity: 1,
+      smoothLandmarks: true,
+      enableSegmentation: false,
+      smoothSegmentation: false,
+      refineFaceLandmarks: false,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    });
+
+    holistic.onResults((results: Results) => {
+      if (canvasRef.current && videoRef.current) {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        // Clear canvas
+        ctx.save();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw pose landmarks (body/arms)
+        if (results.poseLandmarks) {
+          drawConnectors(ctx, results.poseLandmarks, POSE_CONNECTIONS, {
+            color: "#00FF00",
+            lineWidth: 4,
+          });
+          drawLandmarks(ctx, results.poseLandmarks, {
+            color: "#FF0000",
+            lineWidth: 2,
+            radius: 4,
+          });
+        }
+
+        // Draw left hand landmarks
+        if (results.leftHandLandmarks) {
+          drawConnectors(ctx, results.leftHandLandmarks, HAND_CONNECTIONS, {
+            color: "#00FFFF",
+            lineWidth: 3,
+          });
+          drawLandmarks(ctx, results.leftHandLandmarks, {
+            color: "#0088FF",
+            lineWidth: 2,
+            radius: 3,
+          });
+        }
+
+        // Draw right hand landmarks
+        if (results.rightHandLandmarks) {
+          drawConnectors(ctx, results.rightHandLandmarks, HAND_CONNECTIONS, {
+            color: "#00FFFF",
+            lineWidth: 3,
+          });
+          drawLandmarks(ctx, results.rightHandLandmarks, {
+            color: "#0088FF",
+            lineWidth: 2,
+            radius: 3,
+          });
+        }
+
+        ctx.restore();
+      }
+    });
+
+    holisticRef.current = holistic;
+  }, []);
+
+  // Detect pose and hands continuously
+  const detectHolistic = useCallback(async () => {
+    if (
+      videoRef.current &&
+      holisticRef.current &&
+      videoRef.current.readyState === 4
+    ) {
+      try {
+        await holisticRef.current.send({ image: videoRef.current });
+      } catch (error) {
+        console.error("Error detecting holistic:", error);
+      }
+    }
+
+    // Continue detection loop
+    animationFrameRef.current = requestAnimationFrame(detectHolistic);
+  }, []);
 
   const stopCamera = useCallback(() => {
+    // Cancel animation frame
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
     const stream = videoRef.current?.srcObject as MediaStream;
     stream?.getTracks().forEach((track) => track.stop());
     if (videoRef.current) {
@@ -54,6 +164,19 @@ export const SignDetection = ({
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+
+        // Wait for video to be ready
+        videoRef.current.onloadedmetadata = () => {
+          if (canvasRef.current && videoRef.current) {
+            // Set canvas size to match video
+            canvasRef.current.width = videoRef.current.videoWidth;
+            canvasRef.current.height = videoRef.current.videoHeight;
+          }
+
+          // Initialize MediaPipe Holistic and start detection
+          initializeHolistic();
+          detectHolistic();
+        };
       }
       toast.success("Camera đã sẵn sàng!");
     } catch (error: any) {
@@ -65,7 +188,7 @@ export const SignDetection = ({
         error.name === "PermissionDeniedError"
       ) {
         toast.error(
-          "⛔ Trình duyệt chặn quyền camera!\n\n🔧 Cách sửa:\n1. Nhấn vào biểu tượng 🔒 bên cạnh URL\n2. Chọn 'Cho phép' camera\n3. Tải lại trang (F5)",
+          "Trình duyệt chặn quyền camera!\n\nCách sửa:\n1. Nhấn vào biểu tượng bên cạnh URL\n2. Chọn 'Cho phép' camera\n3. Tải lại trang (F5)",
           { duration: 10000 }
         );
       } else if (
@@ -87,7 +210,7 @@ export const SignDetection = ({
         toast.error(`❌ Lỗi: ${error.message}`, { duration: 5000 });
       }
     }
-  }, [stopCamera]);
+  }, [stopCamera, initializeHolistic, detectHolistic]);
 
   const startRecording = () => {
     if (!videoRef.current?.srcObject) {
@@ -141,7 +264,6 @@ export const SignDetection = ({
       formData.append("targetSign", targetSign);
       formData.append("challengeId", challengeId.toString());
 
-      // TODO: Replace with your actual API endpoint
       const response = await fetch("/api/detect-sign", {
         method: "POST",
         body: formData,
@@ -185,6 +307,11 @@ export const SignDetection = ({
 
     return () => {
       stopCamera();
+      // Cleanup MediaPipe Holistic
+      if (holisticRef.current) {
+        holisticRef.current.close();
+        holisticRef.current = null;
+      }
     };
   }, [challengeId, targetSign, startCamera, stopCamera]); // Restart when challenge changes
 
@@ -219,6 +346,12 @@ export const SignDetection = ({
             playsInline
             muted
             className="h-full w-full scale-x-[-1] object-cover"
+          />
+
+          {/* Canvas overlay for hand landmarks */}
+          <canvas
+            ref={canvasRef}
+            className="absolute left-0 top-0 h-full w-full scale-x-[-1]"
           />
 
           {/* Recording Indicator */}

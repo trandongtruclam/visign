@@ -4,10 +4,12 @@ const MODEL_SERVER_URL =
   process.env.MODEL_SERVER_URL || "http://localhost:8000";
 
 export async function POST(req: NextRequest) {
+  let targetSign = "";
+
   try {
     const formData = await req.formData();
     const video = formData.get("video") as Blob;
-    const targetSign = formData.get("targetSign") as string;
+    targetSign = formData.get("targetSign") as string;
     const challengeId = formData.get("challengeId") as string;
 
     if (!video || !targetSign) {
@@ -53,9 +55,10 @@ export async function POST(req: NextRequest) {
         .trim();
     };
 
+    // Check if detected sign matches target AND has sufficient confidence
     const isCorrect =
-      normalizeSign(detectedSign) === normalizeSign(targetSign) ||
-      confidence >= 80; // Accept if high confidence
+      normalizeSign(detectedSign) === normalizeSign(targetSign) &&
+      confidence >= 50; // Require minimum 50% confidence
 
     return NextResponse.json({
       isCorrect,
@@ -71,9 +74,9 @@ export async function POST(req: NextRequest) {
     const mockResults = {
       isCorrect: Math.random() > 0.4, // 60% success rate
       confidence: Math.floor(Math.random() * 30) + 70,
-      detectedSign: targetSign,
+      detectedSign: targetSign || "Unknown",
       allPredictions: [
-        { label: targetSign, probability: 75 },
+        { label: targetSign || "Unknown", probability: 75 },
         { label: "unknown", probability: 25 },
       ],
     };
@@ -84,11 +87,11 @@ export async function POST(req: NextRequest) {
 
 /**
  * This API endpoint calls the FastAPI model server running on port 8000.
- * 
+ *
  * To start the model server:
  * 1. Run: npm run model:start
  * 2. Or manually: cd ../yen-model && python app.py
- * 
+ *
  * The server processes videos using:
  * - MediaPipe Holistic for landmark extraction
  * - LSTM model for sign classification

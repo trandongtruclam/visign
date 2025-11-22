@@ -255,21 +255,40 @@ export const Quiz = ({
 
   // Handler for SIGN_DETECT challenges
   const onSignDetectionComplete = (isCorrect: boolean) => {
-    startTransition(() => {
-      upsertChallengeProgress(challenge.id)
-        .then(() => {
-          setPercentage((prev) => prev + 100 / challenges.length);
-          if (isCorrect) {
+    if (isCorrect) {
+      // Only update progress and move to next challenge if correct
+      startTransition(() => {
+        upsertChallengeProgress(challenge.id)
+          .then(() => {
             void correctControls.play();
+            setPercentage((prev) => prev + 100 / challenges.length);
+            setChallengeMetrics((prev) => {
+              const updated = [...prev];
+              const currentMetric = updated.find(
+                (m) => m.challengeId === challenge.id
+              );
+              // Don't increment retryCount on first success
+              return updated;
+            });
             // Move to next challenge immediately since SignDetection already shows result
             setTimeout(() => onNext(), 1000);
-          } else {
-            void incorrectControls.play();
-            // Don't move to next, let user retry
-          }
-        })
-        .catch(() => toast.error("Something went wrong. Please try again."));
-    });
+          })
+          .catch(() => toast.error("Something went wrong. Please try again."));
+      });
+    } else {
+      // If incorrect, just play sound and track retry - let user retry
+      void incorrectControls.play();
+      setChallengeMetrics((prev) => {
+        const updated = [...prev];
+        const currentMetric = updated.find(
+          (m) => m.challengeId === challenge.id
+        );
+        if (currentMetric) {
+          currentMetric.retryCount++;
+        }
+        return updated;
+      });
+    }
   };
 
   if (!challenge) {
