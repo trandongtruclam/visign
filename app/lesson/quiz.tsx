@@ -124,6 +124,76 @@ export const Quiz = ({
       0
     );
 
+    // Calculate performance by challenge type
+    const typePerformance = challengeMetrics.reduce(
+      (acc, m) => {
+        if (!acc[m.type]) {
+          acc[m.type] = {
+            total: 0,
+            firstTryCorrect: 0,
+            totalRetries: 0,
+            totalTime: 0,
+          };
+        }
+        acc[m.type].total++;
+        if (m.retryCount === 0) acc[m.type].firstTryCorrect++;
+        acc[m.type].totalRetries += m.retryCount;
+        acc[m.type].totalTime += Math.floor((Date.now() - m.startTime) / 1000);
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          total: number;
+          firstTryCorrect: number;
+          totalRetries: number;
+          totalTime: number;
+        }
+      >
+    );
+
+    // Calculate difficulty progression (first half vs second half)
+    const halfPoint = Math.floor(challengeMetrics.length / 2);
+    const firstHalf = challengeMetrics.slice(0, halfPoint);
+    const secondHalf = challengeMetrics.slice(halfPoint);
+
+    const firstHalfAccuracy =
+      firstHalf.length > 0
+        ? (firstHalf.filter((m) => m.retryCount === 0).length /
+            firstHalf.length) *
+          100
+        : 0;
+    const secondHalfAccuracy =
+      secondHalf.length > 0
+        ? (secondHalf.filter((m) => m.retryCount === 0).length /
+            secondHalf.length) *
+          100
+        : 0;
+
+    const performanceTrend =
+      secondHalfAccuracy > firstHalfAccuracy + 10
+        ? "improving"
+        : secondHalfAccuracy < firstHalfAccuracy - 10
+          ? "declining"
+          : "consistent";
+
+    // Calculate time efficiency pattern
+    const timePattern = challengeMetrics.reduce(
+      (acc, m) => {
+        const timeSpent = Math.floor((Date.now() - m.startTime) / 1000);
+        const isFast = timeSpent < 15;
+        const isCorrect = m.retryCount === 0;
+
+        if (isFast && isCorrect) acc.fastCorrect++;
+        else if (!isFast && isCorrect) acc.slowCorrect++;
+        else if (isFast && !isCorrect) acc.fastWrong++;
+        else acc.slowWrong++;
+
+        return acc;
+      },
+      { fastCorrect: 0, slowCorrect: 0, fastWrong: 0, slowWrong: 0 }
+    );
+
     const metrics = {
       totalChallenges: challenges.length,
       correctFirstTry,
@@ -135,6 +205,12 @@ export const Quiz = ({
         retries: m.retryCount,
         timeSpent: Math.floor((Date.now() - m.startTime) / 1000),
       })),
+      // Enhanced metrics
+      typePerformance,
+      performanceTrend,
+      firstHalfAccuracy: firstHalfAccuracy.toFixed(1),
+      secondHalfAccuracy: secondHalfAccuracy.toFixed(1),
+      timePattern,
     };
 
     openFeedbackModal("", true);
@@ -164,11 +240,18 @@ export const Quiz = ({
 
       generateLessonFeedback();
 
-      const timer = setTimeout(async () => {
-        window.location.href = "/learn";
-      }, 3000);
+      const feedbackTimer = setTimeout(() => {
+        openFeedbackModal("", false);
+      }, 5000);
 
-      return () => clearTimeout(timer);
+      const redirectTimer = setTimeout(async () => {
+        window.location.href = "/learn";
+      }, 8000);
+
+      return () => {
+        clearTimeout(feedbackTimer);
+        clearTimeout(redirectTimer);
+      };
     }
   }, [challenge, isCompleting]);
 
@@ -184,7 +267,8 @@ export const Quiz = ({
   };
 
   const onDebugNext = () => {
-    setActiveIndex((current) => Math.min(challenges.length - 1, current + 1));
+    //setActiveIndex((current) => Math.min(challenges.length - 1, current + 1));
+    setActiveIndex((current) => current + 1);
     setStatus("none");
     setSelectedOption(undefined);
   };
@@ -227,7 +311,19 @@ export const Quiz = ({
 
     if (correctOption.id === selectedOption) {
       startTransition(() => {
-        upsertChallengeProgress(challenge.id)
+        // Calculate metrics for this challenge
+        const timeSpent = Math.floor(
+          (Date.now() - currentChallengeStartTime) / 1000
+        );
+        const currentMetric = challengeMetrics.find(
+          (m) => m.challengeId === challenge.id
+        );
+        const retries = currentMetric?.retryCount || 0;
+
+        upsertChallengeProgress(challenge.id, {
+          retryCount: retries,
+          timeSpentSeconds: timeSpent,
+        })
           .then(() => {
             void correctControls.play();
             setStatus("correct");
@@ -244,7 +340,19 @@ export const Quiz = ({
   // Handler for VIDEO_LEARN challenges
   const onVideoLearnContinue = () => {
     startTransition(() => {
-      upsertChallengeProgress(challenge.id)
+      // Calculate metrics for this challenge
+      const timeSpent = Math.floor(
+        (Date.now() - currentChallengeStartTime) / 1000
+      );
+      const currentMetric = challengeMetrics.find(
+        (m) => m.challengeId === challenge.id
+      );
+      const retries = currentMetric?.retryCount || 0;
+
+      upsertChallengeProgress(challenge.id, {
+        retryCount: retries,
+        timeSpentSeconds: timeSpent,
+      })
         .then(() => {
           setPercentage((prev) => prev + 100 / challenges.length);
           onNext();
@@ -258,7 +366,19 @@ export const Quiz = ({
     if (isCorrect) {
       // Only update progress and move to next challenge if correct
       startTransition(() => {
-        upsertChallengeProgress(challenge.id)
+        // Calculate metrics for this challenge
+        const timeSpent = Math.floor(
+          (Date.now() - currentChallengeStartTime) / 1000
+        );
+        const currentMetric = challengeMetrics.find(
+          (m) => m.challengeId === challenge.id
+        );
+        const retries = currentMetric?.retryCount || 0;
+
+        upsertChallengeProgress(challenge.id, {
+          retryCount: retries,
+          timeSpentSeconds: timeSpent,
+        })
           .then(() => {
             void correctControls.play();
             setPercentage((prev) => prev + 100 / challenges.length);
@@ -303,21 +423,21 @@ export const Quiz = ({
           height={height}
         />
         <div className="mx-auto flex h-full max-w-lg flex-col items-center justify-center gap-y-4 text-center lg:gap-y-8">
-            <Image
-              src="/finish.svg"
-              alt="Finish"
-              className="hidden lg:block"
-              height={100}
-              width={100}
-            />
+          <Image
+            src="/finish.svg"
+            alt="Finish"
+            className="hidden lg:block"
+            height={100}
+            width={100}
+          />
 
-            <Image
-              src="/finish.svg"
-              alt="Finish"
-              className="block lg:hidden"
-              height={100}
-              width={100}
-            />
+          <Image
+            src="/finish.svg"
+            alt="Finish"
+            className="block lg:hidden"
+            height={100}
+            width={100}
+          />
 
           <h1 className="text-lg font-bold text-neutral-700 lg:text-3xl">
             Tuyệt vời! 🎉 <br /> Bạn đã hoàn thành bài học.
@@ -325,9 +445,6 @@ export const Quiz = ({
 
           <div className="flex w-full flex-col items-center gap-y-4">
             <ResultCard variant="points" value={challenges.length * 10} />
-            <p className="animate-pulse text-sm text-muted-foreground">
-              Đang chuyển sang bài tiếp theo...
-            </p>
           </div>
         </div>
 

@@ -32,7 +32,7 @@ export function generateGoogleCalendarLink(
 
 export function calculateNextReminderTime(
   reminderTime: string,
-  timezone?: string
+  // timezone?: string
 ): Date {
   const [hours, minutes] = reminderTime.split(":").map(Number);
   const nextReminder = new Date();
@@ -57,4 +57,3 @@ export function generateRecurringReminders(
   }
   return reminders;
 }
-

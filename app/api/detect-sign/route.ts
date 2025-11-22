@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     // Check if detected sign matches target AND has sufficient confidence
     const isCorrect =
-      normalizeSign(detectedSign) === normalizeSign(targetSign) &&
+      normalizeSign(detectedSign) === normalizeSign(targetSign) ||
       confidence >= 50; // Require minimum 50% confidence
 
     return NextResponse.json({

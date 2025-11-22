@@ -128,7 +128,7 @@ export const challengeProgress = pgTable("challenge_progress", {
 
 export const challengeProgressRelations = relations(
   challengeProgress,
-  ({ one }) => ({ 
+  ({ one }) => ({
     challenge: one(challenges, {
       fields: [challengeProgress.challengeId],
       references: [challenges.id],
@@ -169,6 +169,12 @@ export const lessonAnalytics = pgTable("lesson_analytics", {
   pointsEarned: integer("points_earned").notNull(),
   challengeDetails: text("challenge_details"),
   aiFeedback: text("ai_feedback"),
+  // Enhanced metrics
+  typePerformance: text("type_performance"), // JSON string
+  performanceTrend: text("performance_trend"), // "improving" | "declining" | "consistent"
+  firstHalfAccuracy: text("first_half_accuracy"),
+  secondHalfAccuracy: text("second_half_accuracy"),
+  timePattern: text("time_pattern"), // JSON string
 });
 
 export const lessonAnalyticsRelations = relations(

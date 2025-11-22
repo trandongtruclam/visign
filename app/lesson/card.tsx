@@ -9,9 +9,6 @@ import { cn } from "@/lib/utils";
 type CardProps = {
   id: number;
   text: string;
-  imageSrc: string | null;
-  videoUrl?: string | null;
-  audioSrc: string | null;
   shortcut: string;
   selected?: boolean;
   onClick: () => void;
@@ -21,10 +18,7 @@ type CardProps = {
 };
 
 export const Card = ({
-  text,
-  imageSrc,
-  videoUrl,
-  audioSrc,
+  text, 
   shortcut,
   selected,
   onClick,
@@ -32,15 +26,11 @@ export const Card = ({
   disabled,
   type,
 }: CardProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [audio, _, controls] = useAudio({ src: audioSrc || "" });
-
   const handleClick = useCallback(() => {
     if (disabled) return;
 
-    void controls.play();
     onClick();
-  }, [disabled, onClick, controls]);
+  }, [disabled, onClick]);
 
   useKey(shortcut, handleClick, {}, [handleClick]);
 
@@ -67,23 +57,6 @@ export const Card = ({
         type === "VIDEO_SELECT" && selected && "scale-105 shadow-2xl"
       )}
     >
-      {audio}
-      {videoUrl ? (
-        <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-lg bg-gray-100">
-          <iframe
-            src={`${videoUrl}?title=0&byline=0&portrait=0&badge=0&autopause=0`}
-            className="h-full w-full"
-            frameBorder="0"
-            allow="autoplay; fullscreen; picture-in-picture"
-            loading="lazy"
-          />
-        </div>
-      ) : imageSrc ? (
-        <div className="relative mb-4 aspect-square max-h-[80px] w-full lg:max-h-[150px]">
-          <Image src={imageSrc} fill alt={text} />
-        </div>
-      ) : null}
-
       <div
         className={cn(
           "flex items-center justify-between",

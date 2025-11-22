@@ -8,7 +8,15 @@ import db from "@/db/drizzle";
 import { getUserProgress } from "@/db/queries";
 import { challengeProgress, challenges, userProgress } from "@/db/schema";
 
-export const upsertChallengeProgress = async (challengeId: number) => {
+type ChallengeMetrics = {
+  retryCount: number;
+  timeSpentSeconds: number;
+};
+
+export const upsertChallengeProgress = async (
+  challengeId: number,
+  metrics?: ChallengeMetrics
+) => {
   const { userId } = await auth();
 
   if (!userId) throw new Error("Unauthorized.");
@@ -35,11 +43,19 @@ export const upsertChallengeProgress = async (challengeId: number) => {
   const isPractice = !!existingChallengeProgress;
 
   if (isPractice) {
+    const updateData: any = {
+      completed: true,
+    };
+
+    // Update metrics if provided
+    if (metrics) {
+      updateData.retryCount = (existingChallengeProgress.retryCount || 0) + metrics.retryCount;
+      updateData.timeSpentSeconds = (existingChallengeProgress.timeSpentSeconds || 0) + metrics.timeSpentSeconds;
+    }
+
     await db
       .update(challengeProgress)
-      .set({
-        completed: true,
-      })
+      .set(updateData)
       .where(eq(challengeProgress.id, existingChallengeProgress.id));
 
     await db
@@ -57,10 +73,13 @@ export const upsertChallengeProgress = async (challengeId: number) => {
     return;
   }
 
+  // Insert new challenge progress with metrics
   await db.insert(challengeProgress).values({
     challengeId,
     userId,
     completed: true,
+    retryCount: metrics?.retryCount || 0,
+    timeSpentSeconds: metrics?.timeSpentSeconds || 0,
   });
 
   await db

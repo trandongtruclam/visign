@@ -75,8 +75,8 @@ const main = async () => {
     const groupedData: Record<string, Record<number, any[]>> = {};
 
     for (const row of records) {
-      const topic = row.TOPIC;
-      const level = parseInt(row.LEVEL);
+      const topic = (row as Record<string, string>).TOPIC;
+      const level = parseInt((row as Record<string, string>).LEVEL);
 
       if (!groupedData[topic]) groupedData[topic] = {};
       if (!groupedData[topic][level]) groupedData[topic][level] = [];
