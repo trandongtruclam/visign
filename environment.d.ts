@@ -12,6 +12,14 @@ declare global {
 
       // clerk admin user id(s) (separated by comma(,) and space( )). Ex: "user_123, user_456, user_789"
       CLERK_ADMIN_IDS: string;
+
+      // LLM API keys for feedback generation (optional - choose one)
+      OPENAI_API_KEY?: string;
+      // Anthropic API key is not used in this project
+      // ANTHROPIC_API_KEY?: string;
+
+      // Model server URL for sign detection
+      MODEL_SERVER_URL?: string;
     }
   }
 }

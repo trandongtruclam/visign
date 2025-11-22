@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Nunito } from "next/font/google";
 
 import { ExitModal } from "@/components/modals/exit-modal";
+import { FeedbackModal } from "@/components/modals/feedback-modal";
 import { PracticeModal } from "@/components/modals/practice-modal";
 import { Toaster } from "@/components/ui/sonner";
 import { siteConfig } from "@/config";
@@ -39,6 +40,7 @@ export default function RootLayout({
           <Toaster theme="light" richColors closeButton />
           <ExitModal />
           <PracticeModal />
+          <FeedbackModal />
           {children}
         </body>
       </html>

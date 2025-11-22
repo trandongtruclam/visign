@@ -171,9 +171,6 @@ const main = async () => {
                 challengeId: challenge.id,
                 text: option.sign.LABEL,
                 correct: option.correct,
-                videoUrl: null, // No video in options for VIDEO_SELECT
-                imageSrc: null,
-                audioSrc: null,
               });
             }
           }

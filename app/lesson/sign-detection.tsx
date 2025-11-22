@@ -55,7 +55,7 @@ export const SignDetection = ({
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-      toast.success("✅ Camera đã sẵn sàng!");
+      toast.success("Camera đã sẵn sàng!");
     } catch (error: any) {
       console.error("Error accessing camera:", error);
 

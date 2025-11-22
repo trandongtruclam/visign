@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 import { upsertChallengeProgress } from "@/actions/challenge-progress";
 import { challengeOptions, challenges } from "@/db/schema";
+import { useFeedbackModal } from "@/store/use-feedback-modal";
 import { usePracticeModal } from "@/store/use-practice-modal";
 
 import { Challenge } from "./challenge";
@@ -19,6 +20,13 @@ import { QuestionBubble } from "./question-bubble";
 import { ResultCard } from "./result-card";
 import { SignDetection } from "./sign-detection";
 import { VideoLearn } from "./video-learn";
+
+type ChallengeMetric = {
+  challengeId: number;
+  startTime: number;
+  retryCount: number;
+  type: string;
+};
 
 type QuizProps = {
   initialPercentage: number;
@@ -49,6 +57,11 @@ export const Quiz = ({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const { open: openPracticeModal } = usePracticeModal();
+  const {
+    open: openFeedbackModal,
+    setFeedback,
+    setLoading,
+  } = useFeedbackModal();
 
   useMount(() => {
     if (initialPercentage === 100) openPracticeModal();
@@ -71,18 +84,89 @@ export const Quiz = ({
   const [status, setStatus] = useState<"none" | "wrong" | "correct">("none");
   const [isCompleting, setIsCompleting] = useState(false);
 
+  const [lessonStartTime] = useState(Date.now());
+  const [challengeMetrics, setChallengeMetrics] = useState<ChallengeMetric[]>(
+    []
+  );
+  const [currentChallengeStartTime, setCurrentChallengeStartTime] =
+    useState<number>(Date.now());
+
   const challenge = challenges[activeIndex];
   const options = challenge?.challengeOptions ?? [];
 
-  // Auto-redirect after lesson completion
+  useEffect(() => {
+    if (challenge) {
+      const existingMetric = challengeMetrics.find(
+        (m) => m.challengeId === challenge.id
+      );
+      if (!existingMetric) {
+        setChallengeMetrics((prev) => [
+          ...prev,
+          {
+            challengeId: challenge.id,
+            startTime: Date.now(),
+            retryCount: 0,
+            type: challenge.type,
+          },
+        ]);
+      }
+      setCurrentChallengeStartTime(Date.now());
+    }
+  }, [challenge?.id]);
+
+  const generateLessonFeedback = async () => {
+    const totalTime = Math.floor((Date.now() - lessonStartTime) / 1000);
+    const correctFirstTry = challengeMetrics.filter(
+      (m) => m.retryCount === 0
+    ).length;
+    const totalRetries = challengeMetrics.reduce(
+      (sum, m) => sum + m.retryCount,
+      0
+    );
+
+    const metrics = {
+      totalChallenges: challenges.length,
+      correctFirstTry,
+      totalRetries,
+      totalTimeSeconds: totalTime,
+      pointsEarned: challenges.length * 10,
+      challengeDetails: challengeMetrics.map((m) => ({
+        type: m.type,
+        retries: m.retryCount,
+        timeSpent: Math.floor((Date.now() - m.startTime) / 1000),
+      })),
+    };
+
+    openFeedbackModal("", true);
+
+    try {
+      const response = await fetch("/api/generate-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lessonId, metrics }),
+      });
+
+      if (!response.ok) throw new Error("Failed to generate feedback");
+
+      const data = await response.json();
+      setFeedback(data.feedback);
+    } catch (error) {
+      console.error("Error generating feedback:", error);
+      setFeedback(
+        "Great job completing the lesson! Keep practicing to improve your sign language skills."
+      );
+    }
+  };
+
   useEffect(() => {
     if (!challenge && !isCompleting) {
       setIsCompleting(true);
-      // Wait a bit for confetti, then redirect
+
+      generateLessonFeedback();
+
       const timer = setTimeout(async () => {
-        // Force a hard navigation to refresh all server components
         window.location.href = "/learn";
-      }, 3000); // 3 seconds to enjoy the confetti
+      }, 3000);
 
       return () => clearTimeout(timer);
     }
@@ -115,6 +199,16 @@ export const Quiz = ({
     if (!selectedOption) return;
 
     if (status === "wrong") {
+      setChallengeMetrics((prev) => {
+        const updated = [...prev];
+        const currentMetric = updated.find(
+          (m) => m.challengeId === challenge.id
+        );
+        if (currentMetric) {
+          currentMetric.retryCount++;
+        }
+        return updated;
+      });
       setStatus("none");
       setSelectedOption(undefined);
       return;

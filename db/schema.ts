@@ -122,6 +122,8 @@ export const challengeProgress = pgTable("challenge_progress", {
     })
     .notNull(),
   completed: boolean("completed").notNull().default(false),
+  retryCount: integer("retry_count").notNull().default(0),
+  timeSpentSeconds: integer("time_spent_seconds").default(0),
 });
 
 export const challengeProgressRelations = relations(
@@ -150,3 +152,39 @@ export const userProgressRelations = relations(userProgress, ({ one }) => ({
     references: [courses.id],
   }),
 }));
+
+export const lessonAnalytics = pgTable("lesson_analytics", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  lessonId: integer("lesson_id")
+    .references(() => lessons.id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+  completedAt: timestamp("completed_at").notNull().defaultNow(),
+  totalChallenges: integer("total_challenges").notNull(),
+  correctFirstTry: integer("correct_first_try").notNull().default(0),
+  totalRetries: integer("total_retries").notNull().default(0),
+  totalTimeSeconds: integer("total_time_seconds").notNull(),
+  pointsEarned: integer("points_earned").notNull(),
+  challengeDetails: text("challenge_details"),
+  aiFeedback: text("ai_feedback"),
+});
+
+export const lessonAnalyticsRelations = relations(
+  lessonAnalytics,
+  ({ one }) => ({
+    lesson: one(lessons, {
+      fields: [lessonAnalytics.lessonId],
+      references: [lessons.id],
+    }),
+  })
+);
+
+export const notificationPreferences = pgTable("notification_preferences", {
+  userId: text("user_id").primaryKey(),
+  reminderEnabled: boolean("reminder_enabled").notNull().default(true),
+  reminderTime: text("reminder_time").notNull().default("19:00"),
+  timezone: text("timezone").notNull().default("America/New_York"),
+  lastReminderSent: timestamp("last_reminder_sent"),
+});
