@@ -67,6 +67,14 @@ export const ReminderSettings = () => {
         <Image
           src="/notification.svg"
           alt="notification"
+          className="block lg:block"
+          width={24}
+          height={24}
+        />
+        <Image
+          src="/notification.svg"
+          alt="notification"
+          className="block lg:hidden"
           width={24}
           height={24}
         />

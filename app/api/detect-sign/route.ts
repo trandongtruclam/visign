@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
  *
  * To start the model server:
  * 1. Run: npm run model:start
- * 2. Or manually: cd ../yen-model && python app.py
+ * 2. Or manually: cd ../yen-model && uvicorn app:app --reload --port 8000
  *
  * The server processes videos using:
  * - MediaPipe Holistic for landmark extraction

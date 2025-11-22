@@ -303,21 +303,21 @@ export const Quiz = ({
           height={height}
         />
         <div className="mx-auto flex h-full max-w-lg flex-col items-center justify-center gap-y-4 text-center lg:gap-y-8">
-          <Image
-            src="/finish.svg"
-            alt="Finish"
-            className="hidden lg:block"
-            height={100}
-            width={100}
-          />
+            <Image
+              src="/finish.svg"
+              alt="Finish"
+              className="hidden lg:block"
+              height={100}
+              width={100}
+            />
 
-          <Image
-            src="/finish.svg"
-            alt="Finish"
-            className="block lg:hidden"
-            height={100}
-            width={100}
-          />
+            <Image
+              src="/finish.svg"
+              alt="Finish"
+              className="block lg:hidden"
+              height={100}
+              width={100}
+            />
 
           <h1 className="text-lg font-bold text-neutral-700 lg:text-3xl">
             Tuyệt vời! 🎉 <br /> Bạn đã hoàn thành bài học.

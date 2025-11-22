@@ -27,11 +27,6 @@ const main = async () => {
       .insert(schema.courses)
       .values([
         { title: "Vietnamese", imageSrc: "/vn.svg" },
-        { title: "Japanese", imageSrc: "/jp.svg" },
-        { title: "Spanish", imageSrc: "/es.svg" },
-        { title: "French", imageSrc: "/fr.svg" },
-        { title: "Italian", imageSrc: "/it.svg" },
-        { title: "Croatian", imageSrc: "/hr.svg" },
       ])
       .returning();
 
