@@ -287,7 +287,6 @@ See `.env.example` for additional optional variables.
 **Important Note on Branches:**
 
 - **`main` branch**: Production-ready code for deployment on Vercel
-- **`feat/ai-model` branch**: Full source code including AI/ML model implementation and sign detection system
 
 **GitHub Repository**: [phiyenng/sudocode-visign](https://github.com/phiyenng/sudocode-visign)
 
@@ -562,7 +561,6 @@ We welcome contributions! Please follow these steps:
 - Update documentation as needed
 
 ---
-
 
 ## Team
 
