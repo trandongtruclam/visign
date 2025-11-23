@@ -289,9 +289,15 @@ See `.env.example` for additional optional variables.
 - **`main` branch**: Production-ready code for deployment on Vercel
 - **`feat/ai-model` branch**: Full source code including AI/ML model implementation and sign detection system
 
+**GitHub Repository**: [phiyenng/sudocode-visign](https://github.com/phiyenng/sudocode-visign)
+
 To view the complete source code with the AI model components:
 
 ```bash
+# Clone the repository
+git clone https://github.com/phiyenng/sudocode-visign.git
+cd sudocode-visign
+
 # Switch to the AI model branch
 git checkout feat/ai-model
 
