@@ -500,7 +500,7 @@ export const Quiz = ({
           <SignDetection
             videoUrl={challenge.videoUrl || ""}
             targetSign={challenge.question
-              .replace('Thực hiện dấu hiệu: "', "")
+              .replace('Thực hiện Ký hiệu: "', "")
               .replace('"', "")}
             challengeId={challenge.id}
             onComplete={onSignDetectionComplete}
@@ -515,7 +515,7 @@ export const Quiz = ({
     challenge.type === "ASSIST"
       ? "Select the correct meaning"
       : challenge.type === "VIDEO_SELECT"
-        ? "Dấu hiệu này có nghĩa là gì?"
+        ? "Ký hiệu này có nghĩa là gì?"
         : challenge.question;
 
   return (

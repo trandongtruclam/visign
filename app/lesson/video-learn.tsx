@@ -30,10 +30,10 @@ export const VideoLearn = ({
     <div className="flex flex-col items-center gap-y-8 w-full max-w-6xl mx-auto">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-neutral-700 mb-2">
-          Học dấu hiệu mới
+          Học ký hiệu mới
         </h2>
         <p className="text-lg text-muted-foreground">
-          Xem video và ghi nhớ dấu hiệu này
+          Xem video và ghi nhớ ký hiệu này
         </p>
       </div>
 

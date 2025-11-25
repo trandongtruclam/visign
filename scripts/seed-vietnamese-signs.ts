@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/neon-http";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import { parse } from "csv-parse/sync";
 
 import * as schema from "@/db/schema";
@@ -153,7 +153,7 @@ const main = async () => {
               .values({
                 lessonId: lesson.id,
                 type: "VIDEO_SELECT",
-                question: "Dấu hiệu này có nghĩa là gì?",
+                question: "Ký hiệu này có nghĩa là gì?",
                 order: challengeOrder++,
                 videoUrl: correctSign.VIDEO_URL,
               })
@@ -181,7 +181,7 @@ const main = async () => {
             await db.insert(schema.challenges).values({
               lessonId: lesson.id,
               type: "SIGN_DETECT",
-              question: `Thực hiện dấu hiệu: "${sign.LABEL}"`,
+              question: `Thực hiện ký hiệu: "${sign.LABEL}"`,
               order: challengeOrder++,
               videoUrl: sign.VIDEO_URL,
             });

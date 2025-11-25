@@ -418,7 +418,7 @@ export const SignDetection = ({
                 Bắt đầu ghi hình (5s)
               </Button>
               <p className="text-center text-sm text-muted-foreground">
-                Thực hiện dấu hiệu trước camera
+                Thực hiện ký hiệu trước camera
               </p>
             </>
           )}
